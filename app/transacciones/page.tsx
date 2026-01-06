@@ -33,11 +33,10 @@ export default function TransaccionesPage() {
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [ventas, setVentas] = useState<Venta[]>([]);
-  const [manuales, setManuales] = useState<Venta[]>([]);
   const [loading, setLoading] = useState(false);
 
   // =====================================================
-  // 🔍 BUSCAR (FIX TIMEZONE)
+  // 🔍 BUSCAR
   // =====================================================
   const buscar = async () => {
     if (!desde || !hasta) {
@@ -60,8 +59,19 @@ export default function TransaccionesPage() {
       if (!res.ok) throw new Error();
 
       const data = await res.json();
-      setVentas(data.ventas || []);
-      setManuales(data.manuales || []);
+
+      // 🔥 FIX CLAVE: unificar ventas + manuales
+      const todas: Venta[] = [
+        ...(data.ventas || []),
+        ...(data.manuales || []),
+      ];
+
+      // ordenar por fecha desc
+      todas.sort(
+        (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+      );
+
+      setVentas(todas);
     } catch {
       toast.error("Error al cargar transacciones");
     } finally {
@@ -153,7 +163,7 @@ export default function TransaccionesPage() {
         </CardContent>
       </Card>
 
-      {/* VENTAS */}
+      {/* TABLA */}
       <Card className="bg-[#0F172A] border-slate-800">
         <CardHeader>
           <CardTitle className="text-white">Ventas</CardTitle>
