@@ -250,14 +250,17 @@ export default function VentasPage() {
         </Card>
 
         {/* CARRITO */}
-        <Card className="lg:col-span-2 bg-[#0F172A] border-slate-800">
+        <Card className="lg:col-span-2 bg-[#020617] border-slate-700">
           <CardHeader>
             <CardTitle className="text-white">Carrito</CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-4">
             {carrito.map((i, idx) => (
-              <div key={idx} className="flex justify-between text-white">
+              <div
+                key={idx}
+                className="flex justify-between text-white bg-slate-900/70 px-3 py-2 rounded-md"
+              >
                 <span>
                   {i.nombre} × {i.cantidad}
                 </span>
@@ -389,3 +392,4 @@ export default function VentasPage() {
     </div>
   );
 }
+
