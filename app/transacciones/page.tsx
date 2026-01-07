@@ -21,10 +21,10 @@ type Venta = {
   producto: string;
   cantidad: number;
   num?: string | null;
-  precio_unitario: number;
+  precio_unitario: number | null;
   tipo_precio: string;
   total: number | null;
-  fecha: string;
+  fecha: string | null;
   tipo_pago: string;
   dni_cliente: string;
 };
@@ -60,15 +60,15 @@ export default function TransaccionesPage() {
 
       const data = await res.json();
 
-      // 🔥 FIX CLAVE: unificar ventas + manuales
       const todas: Venta[] = [
         ...(data.ventas || []),
         ...(data.manuales || []),
       ];
 
-      // ordenar por fecha desc
       todas.sort(
-        (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+        (a, b) =>
+          new Date(b.fecha ?? 0).getTime() -
+          new Date(a.fecha ?? 0).getTime()
       );
 
       setVentas(todas);
@@ -119,13 +119,13 @@ export default function TransaccionesPage() {
 
   return (
     <div className="min-h-screen p-6 bg-[#0B1220] text-white space-y-6">
-      <h1 className="text-2xl font-bold text-white">Transacciones</h1>
+      <h1 className="text-2xl font-bold">Transacciones</h1>
 
       {/* FILTROS */}
       <Card className="bg-[#0F172A] border-slate-800">
         <CardContent className="p-4 flex flex-wrap gap-4 items-end">
           <div>
-            <label className="text-sm text-white">Desde</label>
+            <label className="text-sm">Desde</label>
             <Input
               type="date"
               value={desde}
@@ -135,7 +135,7 @@ export default function TransaccionesPage() {
           </div>
 
           <div>
-            <label className="text-sm text-white">Hasta</label>
+            <label className="text-sm">Hasta</label>
             <Input
               type="date"
               value={hasta}
@@ -144,19 +144,11 @@ export default function TransaccionesPage() {
             />
           </div>
 
-          <Button
-            onClick={buscar}
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
+          <Button onClick={buscar} disabled={loading}>
             Buscar
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={exportarExcel}
-            className="border-blue-500 text-black hover:bg-blue-600"
-          >
+          <Button variant="outline" onClick={exportarExcel}>
             <FileDown className="mr-2 h-4 w-4" />
             Excel
           </Button>
@@ -166,66 +158,77 @@ export default function TransaccionesPage() {
       {/* TABLA */}
       <Card className="bg-[#0F172A] border-slate-800">
         <CardHeader>
-          <CardTitle className="text-white">Ventas</CardTitle>
+          <CardTitle>Ventas</CardTitle>
         </CardHeader>
 
         <CardContent className="overflow-auto">
-          <table className="w-full text-sm border-collapse text-white">
-            <thead>
-              <tr className="border-b border-slate-700">
-                {[
-                  "Producto",
-                  "Cantidad",
-                  "Núm",
-                  "Precio Unit.",
-                  "Tipo Precio",
-                  "Total",
-                  "Fecha",
-                  "Pago",
-                  "DNI",
-                  "Acciones",
-                ].map((h) => (
-                  <th key={h} className="p-3 text-left text-white">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {ventas.map((v) => (
-                <tr
-                  key={v.id}
-                  className="border-b border-slate-800 hover:bg-slate-800/60"
-                >
-                  <td className="p-3">{v.producto}</td>
-                  <td className="p-3">{v.cantidad}</td>
-                  <td className="p-3">{v.num || "-"}</td>
-                  <td className="p-3">
-                    ${v.precio_unitario.toLocaleString("es-AR")}
-                  </td>
-                  <td className="p-3">{v.tipo_precio}</td>
-                  <td className="p-3 font-semibold text-blue-400">
-                    ${(v.total || 0).toLocaleString("es-AR")}
-                  </td>
-                  <td className="p-3">
-                    {new Date(v.fecha).toLocaleString("es-AR")}
-                  </td>
-                  <td className="p-3">{v.tipo_pago}</td>
-                  <td className="p-3">{v.dni_cliente}</td>
-                  <td className="p-3">
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      onClick={() => anularVenta(v.id)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </td>
+          {ventas.length === 0 ? (
+            <div className="text-center text-slate-400 py-10">
+              No hay transacciones en el período seleccionado
+            </div>
+          ) : (
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-slate-700">
+                  {[
+                    "Producto",
+                    "Cantidad",
+                    "Núm",
+                    "Precio Unit.",
+                    "Tipo Precio",
+                    "Total",
+                    "Fecha",
+                    "Pago",
+                    "DNI",
+                    "Acciones",
+                  ].map((h) => (
+                    <th key={h} className="p-3 text-left">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {ventas.map((v) => (
+                  <tr
+                    key={v.id}
+                    className="border-b border-slate-800 hover:bg-slate-800/60"
+                  >
+                    <td className="p-3">{v.producto}</td>
+                    <td className="p-3">{v.cantidad}</td>
+                    <td className="p-3">{v.num || "-"}</td>
+                    <td className="p-3">
+                      $
+                      {(Number(v.precio_unitario) || 0).toLocaleString(
+                        "es-AR"
+                      )}
+                    </td>
+                    <td className="p-3">{v.tipo_precio}</td>
+                    <td className="p-3 font-semibold text-blue-400">
+                      ${(Number(v.total) || 0).toLocaleString("es-AR")}
+                    </td>
+                    <td className="p-3">
+                      {v.fecha
+                        ? new Date(v.fecha).toLocaleString("es-AR")
+                        : "-"}
+                    </td>
+                    <td className="p-3">{v.tipo_pago}</td>
+                    <td className="p-3">{v.dni_cliente}</td>
+                    <td className="p-3">
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={() => anularVenta(v.id)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </CardContent>
       </Card>
 
