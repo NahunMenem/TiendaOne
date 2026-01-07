@@ -64,8 +64,8 @@ export default function ManualPage() {
             <Image
               src="https://res.cloudinary.com/df3cwd4ty/image/upload/v1767750885/Dise%C3%B1o_sin_t%C3%ADtulo_2_olwmsu.gif"
               alt="Disponibilidad"
-              width={1500}
-              height={3000}
+              width={300}
+              height={600}
               className="rounded-lg mx-auto"
             />
 
@@ -307,6 +307,7 @@ export default function ManualPage() {
     </div>
   );
 }
+
 
 
 
