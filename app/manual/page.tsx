@@ -62,7 +62,7 @@ export default function ManualPage() {
 
           <CardContent className="space-y-4 text-white/80 text-sm">
             <Image
-              src="https://res.cloudinary.com/df3cwd4ty/image/upload/v1767730885/disponible2_wymxeh.png"
+              src="https://res.cloudinary.com/df3cwd4ty/image/upload/v1767749401/Dise%C3%B1o_sin_t%C3%ADtulo_g8yvvn.gif"
               alt="Disponibilidad"
               width={300}
               height={600}
@@ -307,3 +307,4 @@ export default function ManualPage() {
     </div>
   );
 }
+
