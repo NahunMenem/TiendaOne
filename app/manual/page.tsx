@@ -154,7 +154,7 @@ export default function ManualPage() {
             <span className="text-teal-400 text-sm font-semibold">Paso 3</span>
             <CardTitle className="text-xl text-white flex items-center gap-2">
               <Navigation className="w-5 h-5 text-teal-400" />
-              Llegada al domicilio
+              Profesional en camino
             </CardTitle>
           </CardHeader>
 
@@ -307,6 +307,7 @@ export default function ManualPage() {
     </div>
   );
 }
+
 
 
 
