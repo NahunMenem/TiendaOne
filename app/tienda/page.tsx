@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MessageCircle } from "lucide-react";
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectTrigger,
@@ -41,8 +42,12 @@ type Producto = {
 };
 
 const WHATSAPP_NUMBER = "543804315721";
+
 const WATERMARK_LOGO =
   "https://res.cloudinary.com/df3cwd4ty/image/upload/v1767716249/tiendauno_n0kkg8.png";
+
+const HEADER_LOGO =
+  "https://res.cloudinary.com/df3cwd4ty/image/upload/v1767797082/productos/sipbukli6wou2mpcmhra.png";
 
 // ===============================
 // COMPONENT
@@ -54,12 +59,13 @@ export default function TiendaPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
 
   const [imagen, setImagen] = useState<string | null>(null);
   const [nombreImagen, setNombreImagen] = useState("");
 
   // ===============================
-  // QUERY
+  // QUERY PARAMS
   // ===============================
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -88,6 +94,21 @@ export default function TiendaPage() {
     setLoading(false);
   };
 
+  // ===============================
+  // BUSQUEDA FRONTEND
+  // ===============================
+  const productosFiltrados = useMemo(() => {
+    if (!busqueda.trim()) return productos;
+
+    const q = busqueda.toLowerCase();
+
+    return productos.filter((p) =>
+      [p.nombre, p.categoria, p.color, p.condicion]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(q))
+    );
+  }, [busqueda, productos]);
+
   const formatPrecio = (precio: number | null) =>
     precio ? `$${precio.toLocaleString("es-AR")}` : "Consultar";
 
@@ -95,11 +116,11 @@ export default function TiendaPage() {
     const mensaje = `
 Hola, quiero consultar por este producto:
 
-📱 ${p.nombre}
-🎨 Color: ${p.color || "-"}
-🔋 Batería: ${p.bateria ? `${p.bateria}%` : "-"}
-♻️ Condición: ${p.condicion || "-"}
-💰 Precio: ${formatPrecio(p.precio)}
+${p.nombre}
+Color: ${p.color || "-"}
+Batería: ${p.bateria ? `${p.bateria}%` : "-"}
+Condición: ${p.condicion || "-"}
+Precio: ${formatPrecio(p.precio)}
     `.trim();
 
     window.open(
@@ -110,78 +131,85 @@ Hola, quiero consultar por este producto:
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-slate-950 via-blue-950 to-slate-900 text-slate-100 px-6 py-8 overflow-hidden">
-      
-    {/* ===============================
-        MARCA DE AGUA REPETIDA
-    =============================== */}
-    <div
-      className="pointer-events-none absolute inset-0 opacity-[0.035]"
-      style={{
-        backgroundImage: `url(${WATERMARK_LOGO})`,
-        backgroundRepeat: "repeat",
-        backgroundSize: "180px",
-        backgroundPosition: "center",
-      }}
-    />
 
+      {/* MARCA DE AGUA */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.035]"
+        style={{
+          backgroundImage: `url(${WATERMARK_LOGO})`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "180px",
+          backgroundPosition: "center",
+        }}
+      />
 
-      {/* ===============================
-          CONTENIDO
-      =============================== */}
-      <div className="relative z-10 space-y-8">
+      <div className="relative z-10 space-y-10">
+
         {/* HEADER */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-white">
-            Catálogo
-          </h1>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <Image
+              src={HEADER_LOGO}
+              alt="Logo"
+              width={140}
+              height={40}
+              className="object-contain"
+            />
 
-          <Select
-            value={categoria ?? "all"}
-            onValueChange={(v) => {
-              if (v === "all") {
-                router.push("/tienda");
-                setCategoria(null);
-              } else {
-                router.push(`/tienda?categoria=${v}`);
-                setCategoria(v);
-              }
-            }}
-          >
-            <SelectTrigger className="w-56 bg-slate-900 border-slate-700 text-slate-100">
-              <SelectValue placeholder="Todas las categorías" />
-            </SelectTrigger>
-
-            <SelectContent className="bg-slate-900 border-slate-700">
-              <SelectItem value="all">Todas las categorías</SelectItem>
-              {categorias.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
+            <Select
+              value={categoria ?? "all"}
+              onValueChange={(v) => {
+                if (v === "all") {
+                  router.push("/tienda");
+                  setCategoria(null);
+                } else {
+                  router.push(`/tienda?categoria=${v}`);
+                  setCategoria(v);
+                }
+              }}
+            >
+              <SelectTrigger className="w-56 bg-slate-900 border-slate-700 text-white">
+                <SelectValue placeholder="Categorías" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                <SelectItem
+                  value="all"
+                  className="text-white focus:bg-slate-800 focus:text-white"
+                >
+                  Todas
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                {categorias.map((c) => (
+                  <SelectItem
+                    key={c}
+                    value={c}
+                    className="text-white focus:bg-slate-800 focus:text-white"
+                  >
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Input
+            placeholder="¿Qué estás buscando?"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="max-w-xl bg-slate-900/80 border-slate-700 text-white"
+          />
         </div>
 
         {loading && <p className="text-slate-400">Cargando…</p>}
 
         {/* GRID */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
-          {productos.map((p) => (
+          {productosFiltrados.map((p) => (
             <Card
               key={p.id}
-              className="
-                bg-slate-900/80
-                border border-slate-700
-                rounded-2xl
-                transition-all
-                hover:-translate-y-1
-                hover:shadow-[0_20px_40px_rgba(30,64,175,0.25)]
-                hover:border-blue-700
-              "
+              className="bg-slate-900/80 border border-slate-700 rounded-2xl hover:border-blue-700 transition"
             >
-              {/* IMAGEN */}
               <div
-                className="relative aspect-square cursor-pointer bg-blue-950/40 rounded-t-2xl"
+                className="relative aspect-square bg-blue-950/40 rounded-t-2xl cursor-pointer"
                 onClick={() => {
                   setImagen(p.foto_url);
                   setNombreImagen(p.nombre);
@@ -195,55 +223,42 @@ Hola, quiero consultar por este producto:
                 />
               </div>
 
-              <CardContent className="space-y-3 pt-4">
-                <div>
-                  <h2 className="text-sm font-medium text-white">
-                    {p.nombre}
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    {p.categoria}
-                  </p>
-                </div>
+              <CardContent className="space-y-4 pt-4">
+                <h2 className="text-sm font-medium text-white">
+                  {p.nombre}
+                </h2>
 
                 <div className="flex flex-wrap gap-2">
                   {p.condicion && (
-                    <Badge className="bg-slate-800 text-slate-200 border border-slate-700">
+                    <Badge variant="secondary">
                       {p.condicion}
                     </Badge>
                   )}
                   {p.color && (
-                    <Badge className="bg-blue-900 text-blue-100">
+                    <Badge className="bg-blue-900">
                       {p.color}
-                    </Badge>
-                  )}
-                  {p.bateria && (
-                    <Badge
-                      variant="outline"
-                      className="border-blue-700 text-blue-300"
-                    >
-                      {p.bateria}% batería
                     </Badge>
                   )}
                 </div>
 
-                <Separator className="bg-slate-700" />
+                <Separator />
 
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-white">
+                <div className="flex items-end justify-between">
+                  <span className="text-2xl font-semibold tracking-tight text-white">
                     {formatPrecio(p.precio)}
                   </span>
                   <span className="text-xs text-slate-400">
-                    Stock: {p.stock}
+                    Stock {p.stock}
                   </span>
                 </div>
               </CardContent>
 
               <CardFooter>
                 <Button
-                  className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+                  className="w-full bg-green-600 hover:bg-green-700"
                   onClick={() => contactarWhatsApp(p)}
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageCircle className="w-4 h-4 mr-2" />
                   Consultar
                 </Button>
               </CardFooter>
@@ -253,18 +268,64 @@ Hola, quiero consultar por este producto:
 
         {/* MODAL IMAGEN */}
         <Dialog open={!!imagen} onOpenChange={() => setImagen(null)}>
-          <DialogContent className="max-w-3xl bg-slate-950 border border-slate-800">
+          <DialogContent className="max-w-3xl bg-slate-950">
             {imagen && (
               <Image
                 src={imagen}
                 alt={nombreImagen}
                 width={900}
                 height={900}
-                className="object-contain mx-auto"
+                className="mx-auto object-contain"
               />
             )}
           </DialogContent>
         </Dialog>
+
+        {/* FOOTER PROFESIONAL */}
+        <div className="mt-24">
+          <Separator className="mb-12 bg-slate-800" />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto text-sm text-slate-300">
+            <div>
+              <h3 className="text-white font-medium mb-3">
+                Tienda Uno
+              </h3>
+              <p>
+                Av. Principal 123<br />
+                Centro – Ciudad<br />
+                Argentina
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-white font-medium mb-3">
+                Contacto
+              </h3>
+              <p>
+                WhatsApp: +54 380 431-5721<br />
+                contacto@tiendauno.com
+              </p>
+              <p className="mt-3 text-slate-400">
+                Lun a Vie · 09–21 hs<br />
+                Sáb · 09–13 hs
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-white font-medium mb-3">
+                Experiencia
+              </h3>
+              <p>
+                Tecnología verificada, stock real y
+                atención directa especializada.
+              </p>
+            </div>
+          </div>
+
+          <p className="text-xs text-center text-slate-500 mt-16">
+            © {new Date().getFullYear()} Tienda Uno · Tecnología confiable
+          </p>
+        </div>
       </div>
     </div>
   );
